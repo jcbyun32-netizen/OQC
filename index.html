@@ -55,14 +55,15 @@ h1{font-size:1.25rem;font-weight:800;margin:0 0 .25rem}
 .empty{text-align:center;color:var(--mute);padding:2rem 1rem;border:2px dashed var(--line);border-radius:1rem;margin-bottom:.75rem}
 .btns{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 4.75rem)}
 .next{margin-top:.6rem;height:2.75rem;border-color:var(--brand);color:var(--brand)}
-.fit{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-.fit main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-top:.6rem;padding-bottom:.6rem}
+.fit{position:fixed;top:0;left:0;right:0;min-height:0;height:100vh;height:100dvh;height:var(--app-h,100dvh);display:flex;flex-direction:column;overflow:hidden}
+.fit header .hd{padding:.4rem 0}.fit header .hd img{height:2rem}
+.fit main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;padding-top:.5rem;padding-bottom:.5rem}
 .pg{flex:1;min-height:0;display:flex;flex-direction:column;gap:.5rem}
 .stat{display:flex;align-items:center;justify-content:space-between;padding:.55rem .85rem;margin:0}
 .sn{font-size:1.1rem;font-weight:800}.pn{font-size:1.1rem;font-weight:800;color:var(--brand)}
 .ttl{font-weight:800;font-size:1rem}
-.vp{flex:1;min-height:5rem;background:var(--soft);border-radius:.75rem;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.vp img{width:100%;height:100%;object-fit:contain;display:block}
+.vp{flex:1;min-height:3rem;position:relative;background:var(--soft);border-radius:.75rem;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
 .emp{text-align:center;color:var(--mute);padding:1rem;width:100%}
 .emp>div:first-child{margin-bottom:.9rem;line-height:1.5}
 .cbtns{display:grid;gap:.6rem}
@@ -70,7 +71,7 @@ h1{font-size:1.25rem;font-weight:800;margin:0 0 .25rem}
 .acts{grid-template-columns:1.3fr 1fr .8fr}.nav{grid-template-columns:1fr 1fr}
 .acts .mid,.nav .mid{height:2.75rem;font-size:.9rem}
 .dl{color:var(--danger)}
-.pg .ta{margin-top:0;min-height:0;height:4rem;resize:none}
+.pg .ta{margin-top:0;min-height:0;height:3.5rem;resize:none;flex:none}
 .fin{height:3.25rem;font-size:1.1rem}
 .sticky{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + .5rem);display:grid;gap:.5rem;padding-top:.25rem}
 .thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
@@ -365,6 +366,9 @@ function downloadXlsx(){
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
 
+function setH(){const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;document.documentElement.style.setProperty('--app-h',Math.round(h)+'px')}
+setH();window.addEventListener('resize',setH);window.addEventListener('orientationchange',()=>setTimeout(setH,200));
+if(window.visualViewport){window.visualViewport.addEventListener('resize',setH)}
 load();
 if(!PREFIXES.includes(S.prefix))S.prefix=PREFIXES[0];
 S.rest=cleanRest(S.rest);
