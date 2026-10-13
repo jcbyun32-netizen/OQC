@@ -53,6 +53,8 @@ h1{font-size:1.25rem;font-weight:800;margin:0 0 .25rem}
 .ph img{width:100%;border-radius:.6rem;display:block;max-height:22rem;object-fit:contain;background:#0001}
 .ta{width:100%;margin-top:.6rem;min-height:4.5rem;padding:.6rem .75rem;font:inherit;font-size:1rem;border-radius:.75rem;border:2px solid var(--line);background:var(--card);color:var(--ink);outline:none;resize:vertical}
 .empty{text-align:center;color:var(--mute);padding:2rem 1rem;border:2px dashed var(--line);border-radius:1rem;margin-bottom:.75rem}
+.btns{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 4.75rem)}
+.next{margin-top:.6rem;height:2.75rem;border-color:var(--brand);color:var(--brand)}
 .sticky{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + .5rem);display:grid;gap:.5rem;padding-top:.25rem}
 .thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
 .th img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:.5rem;display:block}
@@ -163,7 +165,7 @@ function renderShoot(){
     <div class="count" style="margin-top:.5rem"><span style="font-weight:700">불량 사진</span><span class="${full?'':'ok'}" style="font-weight:800">${n} / ${MAX}장</span></div>
     <div class="bar"><i style="width:${n/MAX*100}%"></i></div>
   </section>
-  <div class="btns">
+  <div class="btns" id="camBtns">
     <button class="cam" ${full?'disabled':''} onclick="$('fCam').click()">📷 사진 촬영</button>
     <button class="cam alt" ${full?'disabled':''} onclick="$('fPick').click()">🖼 앨범에서 선택</button>
   </div>
@@ -174,12 +176,25 @@ function renderShoot(){
   <section class="card ph">
     <div class="top"><span class="no">불량 #${i+1}</span><button class="del" onclick="removePhoto(${i})">삭제</button></div>
     <img src="${p.data}" alt="불량 사진 ${i+1}">
-    <textarea class="ta" placeholder="불량 위치 / 내용 코멘트" oninput="S.photos[${i}].comment=this.value;save()">${esc(p.comment||'')}</textarea>
+    <textarea id="cm${i}" class="ta" placeholder="불량 위치 / 내용 코멘트" oninput="S.photos[${i}].comment=this.value;save()" onblur="afterComment(event,${i})">${esc(p.comment||'')}</textarea>
+    ${(i===n-1&&!full)?'<button class="mid next" onmousedown="event.preventDefault()" onclick="toCam()">코멘트 완료 · 다음 사진 촬영 ▲</button>':''}
   </section>`).join('')}
   <div class="sticky">
     <button class="big" ${n===0?'disabled':''} onclick="finish()">불량 검출 완료 (${n}건)</button>
     <button class="mid" onclick="goStart()">처음 화면</button>
   </div>`;
+}
+let newIdx=-1;
+function toCam(){
+  newIdx=-1;
+  const a=document.activeElement; if(a&&a.blur)a.blur();
+  const b=$('camBtns'); if(b)b.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function afterComment(e,i){
+  if(i!==newIdx)return;
+  const r=e.relatedTarget;
+  if(r&&/^(BUTTON|TEXTAREA|INPUT)$/.test(r.tagName))return;
+  setTimeout(toCam,150);
 }
 function goStart(){S.screen='start';save();render();window.scrollTo(0,0)}
 
@@ -208,6 +223,11 @@ async function addFiles(inp){
     try{S.photos.push(await fileToPhoto(f))}catch(e){await tell('사진을 불러오지 못했습니다.')}
   }
   save();renderShoot();
+  if(S.photos.length){
+    newIdx=S.photos.length-1;
+    const ta=$('cm'+newIdx);
+    if(ta){ta.scrollIntoView({behavior:'smooth',block:'center'});try{ta.focus({preventScroll:true})}catch(e){}}
+  }
   if(files.length>room)tell('최대 '+MAX+'장까지만 등록됩니다.\n초과한 '+(files.length-room)+'장은 제외되었습니다.');
 }
 async function removePhoto(i){
