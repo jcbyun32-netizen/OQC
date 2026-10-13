@@ -202,14 +202,14 @@ function renderShoot(){
     </section>
     <div class="ttl">${title}</div>
     <div class="vp">${p?`<img src="${p.data}" alt="${esc(title)}">`:`<div class="emp"><div>${prompt}</div>
-      <div class="cbtns"><button class="cam" onclick="$('fCam').click()">📷 사진 촬영</button><button class="cam alt" onclick="$('fPick').click()">🖼 앨범에서 선택</button></div></div>`}</div>
-    ${p?`<div class="acts"><button class="mid" onclick="$('fCam').click()">📷 다시 촬영</button><button class="mid" onclick="$('fPick').click()">🖼 앨범</button><button class="mid dl" onclick="removeCur()">삭제</button></div>
+      <div class="cbtns"><button class="cam" onclick="$('fCam').click()">📷 사진 촬영</button><button class="cam alt" onclick="$('fPick').click()">🖼 앨범에서 ${isList?'선택':'여러 장 선택'}</button></div></div>`}</div>
+    ${p?`<div class="acts"><button class="mid" onclick="$('fCam').click()">📷 다시 촬영</button><button class="mid" onclick="$('fPick').click()">🖼 ${isList?'앨범':'앨범 추가'}</button><button class="mid dl" onclick="removeCur()">삭제</button></div>
     <textarea id="cmt" class="ta" placeholder="${isList?'메모 (선택)':'불량 위치 / 내용 코멘트'}" oninput="setComment(this.value)">${esc(p.comment||'')}</textarea>`:''}
     <div class="foot"><div class="nav"><button class="mid" ${S.page===0?'disabled':''} onclick="go(-1)">◀ 이전</button><button class="mid" ${canNext?'':'disabled'} onclick="go(1)">다음 ▶</button></div>
     <button class="big fin" ${n===0?'disabled':''} onclick="finish()">불량 검출 완료 (${n}건)</button></div>
   </div>
   <input id="fCam" type="file" accept="image/*" capture="environment" hidden onchange="addFile(this)">
-  <input id="fPick" type="file" accept="image/*" hidden onchange="addFile(this)">`;
+  <input id="fPick" type="file" accept="image/*" ${isList?'':'multiple'} hidden onchange="addFiles(this)">`;
   fitVp();
 }
 function go(d){S.page+=d;save();renderShoot()}
@@ -243,6 +243,32 @@ async function addFile(inp){
   }
   save();renderShoot();
   if(S.page>0){const t=$('cmt');if(t)try{t.focus({preventScroll:true})}catch(e){}}
+}
+function busy(msg){
+  const d=document.createElement('div');d.className='ov';
+  d.innerHTML='<div class="dlg"><p style="margin:0;text-align:center"></p></div>';
+  d.querySelector('p').textContent=msg;document.body.appendChild(d);
+  return ()=>d.remove();
+}
+async function addFiles(inp){
+  if(S.page===0)return addFile(inp);
+  const files=Array.from(inp.files||[]);inp.value='';
+  if(!files.length)return;
+  const room=MAX-S.photos.length;
+  if(room<=0){await tell('불량 사진은 최대 '+MAX+'장까지 등록할 수 있습니다.');return}
+  const use=files.slice(0,room);
+  const first=S.photos.length+1;
+  const done=busy('사진 처리 중... ('+use.length+'장)');
+  let added=0,failed=0;
+  for(const f of use){
+    try{S.photos.push(await fileToPhoto(f));added++}catch(e){failed++}
+  }
+  done();
+  if(added){S.page=first;save();renderShoot();const t=$('cmt');if(t)try{t.focus({preventScroll:true})}catch(e){}}
+  const msg=[];
+  if(files.length>room)msg.push('최대 '+MAX+'장까지만 등록됩니다.\n초과한 '+(files.length-room)+'장은 제외되었습니다.');
+  if(failed)msg.push(failed+'장은 불러오지 못했습니다.');
+  if(msg.length)await tell(msg.join('\n'));
 }
 async function removeCur(){
   if(!(await ask((S.page===0?'수기 펀치리스트':'불량 #'+S.page)+' 사진을 삭제할까요?','삭제')))return;
