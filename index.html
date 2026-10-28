@@ -281,6 +281,7 @@ function finish(){
 }
 
 /* ---------- 3. 확인 및 엑셀 저장 ---------- */
+let xlsxSaved=false;
 function renderReview(){
   const n=S.photos.length;
   $('app').innerHTML=`
@@ -294,12 +295,14 @@ function renderReview(){
     ${items().map(p=>`<div class="th"><img src="${p.data}" alt=""><p><b>${p.label==='수기'?'수기 펀치리스트':'#'+p.label}</b> ${esc(p.comment||'')}</p></div>`).join('')}
   </div></section>
   <div style="display:grid;gap:.5rem">
-    <button class="big" onclick="downloadXlsx()">엑셀(.xlsx) 저장</button>
-    <button class="mid" onclick="S.screen='shoot';save();render();window.scrollTo(0,0)">사진 / 코멘트 수정</button>
+    <button class="big" onclick="downloadXlsx()">엑셀(.xlsx) 저장${xlsxSaved?' (다시 저장)':''}</button>
+    ${xlsxSaved?`<button class="big dark" onclick="shareXlsx()">저장한 엑셀 공유하기</button>`:''}
+    <button class="mid" onclick="xlsxSaved=false;S.screen='shoot';save();render();window.scrollTo(0,0)">사진 / 코멘트 수정</button>
   </div>`;
 }
 async function resetAll(){
   if(!(await ask('현재 검사 데이터를 지우고 처음 화면으로 돌아갈까요?\n저장하지 않은 사진과 코멘트는 사라집니다.','새 검사')))return;
+  xlsxSaved=false;
   S={screen:'start',inspector:S.inspector,prefix:S.prefix,rest:'',list:null,page:0,photos:[]};
   save();render();window.scrollTo(0,0);
 }
@@ -400,6 +403,17 @@ function downloadXlsx(){
   a.download=fileBase()+'.xlsx';
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  xlsxSaved=true;renderReview();
+}
+async function shareXlsx(){
+  const name=fileBase()+'.xlsx';
+  let file;
+  try{file=new File([buildXlsxBlob()],name,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}catch(e){file=null}
+  if(!file||!navigator.share||!(navigator.canShare&&navigator.canShare({files:[file]}))){
+    await tell('이 기기/브라우저에서는 파일 공유를 지원하지 않습니다.\n[엑셀(.xlsx) 저장]으로 내려받은 뒤 파일 앱에서 공유해 주세요.');return;
+  }
+  try{await navigator.share({files:[file],title:name})}
+  catch(e){if(e&&e.name!=='AbortError')await tell('공유하지 못했습니다.\n'+(e.message||e))}
 }
 
 function setH(){const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight||document.documentElement.clientHeight;document.documentElement.style.setProperty('--app-h',Math.round(h)+'px');fitVp()}
