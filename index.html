@@ -107,7 +107,7 @@ h1{font-size:1.25rem;font-weight:800;margin:0 0 .25rem}
 <script>
 const KEY='ls_oqc_punch_v2', NAME_KEY='ls_oqc_inspector_v1', MAX=15;
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
-let S={screen:'start',inspector:'',prefix:'MEC00905',rest:'',date:'',list:null,page:0,photos:[]};
+let S={screen:'start',inspector:'',prefix:'MEC00905AA',rest:'',date:'',list:null,page:0,photos:[]};
 const items=()=>[...(S.list?[Object.assign({},S.list,{label:'수기'})]:[]),...S.photos.map((p,i)=>Object.assign({},p,{label:i+1}))];
 
 function safeGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -123,9 +123,9 @@ function save(){
 }
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const PREFIXES=['MEC00905','MEC00907'];
+const PREFIXES=['MEC00905AA','MEC00907AA'];
 const cleanRest=v=>String(v||'').toUpperCase().replace(/^\s*AEA/,'').replace(/[^0-9]/g,'');
-const serial=()=>S.prefix+'-AEA'+S.rest.trim();
+const serial=()=>S.prefix+' AEA'+S.rest.trim();
 
 function ask(msg,okText,cancelText){
   okText=okText||'확인';
@@ -167,7 +167,7 @@ function renderStart(){
     </div>
     <label class="lb" for="rest">시리얼 번호 (AEA 뒤 숫자)</label>
     <div class="row">
-      <span class="pre" style="font-size:1.05rem;white-space:nowrap">${S.prefix}-AEA</span>
+      <span class="pre" style="font-size:1.05rem;white-space:nowrap">${S.prefix} AEA</span>
       <input id="rest" class="in" style="flex:1;min-width:0" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="숫자 입력" value="${esc(S.rest)}" oninput="S.rest=cleanRest(this.value);this.value=S.rest;save()">
     </div>
     <button class="big" onclick="startInspect()">검사 시작</button>
@@ -372,11 +372,11 @@ function drawingXml(){
   const EMU=9525;let a='',j=0;
   dataRows().forEach((p,i)=>{
     if(!p.data)return;j++;const r=FIRST-1+i;
-    a+=`<xdr:twoCellAnchor editAs="twoCell"><xdr:from><xdr:col>14</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>15</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r+1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${j+1}" name="사진 ${i+1}"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId${j}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>`;
+    a+=`<xdr:twoCellAnchor editAs="twoCell"><xdr:from><xdr:col>14</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>15</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${r+1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${j+1}" name="사진 ${i+1}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="0" noMove="1" noResize="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId${j}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${COLO_PX*EMU}" cy="${ROWPX*EMU}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>`;
   });
   const np=dataRows().filter(p=>p.data).length;
   punchArr().forEach((q,k)=>{
-    a+=`<xdr:twoCellAnchor editAs="twoCell"><xdr:from><xdr:col>15</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${FIRST-1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>16</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${FIRST}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${1000+k}" name="펀치리스트 ${k+1}"/><xdr:cNvPicPr/></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId${np+k+1}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>`});
+    a+=`<xdr:twoCellAnchor editAs="twoCell"><xdr:from><xdr:col>15</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${FIRST-1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>16</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${FIRST}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${1000+k}" name="펀치리스트 ${k+1}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="0" noMove="1" noResize="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId${np+k+1}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${COLO_PX*EMU}" cy="${ROWPX*EMU}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>`});
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+a+'</xdr:wsDr>';
 }
 function buildXlsxBlob(){
